@@ -10,7 +10,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade900,
       body: Center(
-        child: SvgPicture.asset(Pieces.wBishop),
+        child: SvgPicture.asset(Pieces.wKing),
       ),
     );
   }
