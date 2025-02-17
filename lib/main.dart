@@ -1,4 +1,4 @@
-import 'package:chess/view/home_screen.dart';
+import 'package:chess/view/game_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
+      home: GameScreen(),
     );
   }
 }
