@@ -1,3 +1,6 @@
+import 'package:chess/components/piece.dart';
+import 'package:chess/components/square.dart';
+import 'package:chess/helper/functions.dart';
 import 'package:flutter/material.dart';
 
 class GameScreen extends StatelessWidget {
@@ -5,8 +8,6 @@ class GameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final columnLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-    bool rowFinished = false;
     return Scaffold(
       backgroundColor: Colors.blueGrey,
       body: Padding(
@@ -18,11 +19,13 @@ class GameScreen extends StatelessWidget {
               crossAxisCount: 8,
             ),
             itemBuilder: (context, index) {
-              if (index % 8 == 0 && index != 0) {
-                rowFinished = !rowFinished;
-              }
-              return Container(
-                color: getSquareColor(rowFinished, index),
+              return Square(
+                isWhite: isWhite(index),
+                piece: ChessPiece(
+                  type: ChessPieceType.pawn,
+                  isWhite: false,
+                  imagePath: 'assets/pawn.svg',
+                ),
               );
             },
             itemCount: 64,
@@ -30,13 +33,5 @@ class GameScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color getSquareColor(bool rowFinished, int i) {
-    if (rowFinished) {
-      return i.isEven ? Colors.grey : Colors.grey.shade900;
-    } else {
-      return i.isEven ? Colors.grey.shade900 : Colors.grey;
-    }
   }
 }
