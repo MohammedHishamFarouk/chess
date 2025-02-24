@@ -24,7 +24,7 @@ class GameScreen extends StatelessWidget {
                 piece: ChessPiece(
                   type: ChessPieceType.pawn,
                   isWhite: false,
-                  imagePath: 'assets/pawn.svg',
+                  imagePath: 'assets/king.svg',
                 ),
               );
             },
