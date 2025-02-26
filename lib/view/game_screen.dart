@@ -34,7 +34,6 @@ class _GameScreenState extends State<GameScreen> {
   void _initializeBoard() {
     List<List<ChessPiece?>> newBoard =
         List.generate(8, (index) => List.generate(8, (index) => null));
-
     //place pawns
     for (int i = 0; i < 8; i++) {
       newBoard[1][i] = ChessPiece(
@@ -238,10 +237,89 @@ class _GameScreenState extends State<GameScreen> {
         }
         break;
       case ChessPieceType.bishop:
+        //diagonal directions
+        var directions = [
+          [-1, -1], //up left
+          [-1, 1], //up right
+          [1, -1], //down left
+          [1, 1], //down right
+        ];
+        for (var direction in directions) {
+          var i = 1;
+          while (true) {
+            var newRow = row + i * direction[0];
+            var newCol = col + i * direction[1];
+            if (!isInBoard(newRow, newCol)) {
+              break;
+            }
+            if (board[newRow][newCol] != null) {
+              if (board[newRow][newCol]!.isWhite != piece.isWhite) {
+                candidateMoves.add([newRow, newCol]); //kill
+              }
+              break; //block
+            }
+            candidateMoves.add([newRow, newCol]);
+            i++;
+          }
+        }
         break;
       case ChessPieceType.queen:
+        //horizontal and vertical and diagonal movement
+        var directions = [
+          [-1, 0], //up
+          [1, 0], //down
+          [0, -1], //left
+          [0, 1], //right
+          [-1, -1], //up left
+          [-1, 1], //up right
+          [1, -1], //down left
+          [1, 1], //down right
+        ];
+        for (var direction in directions) {
+          var i = 1;
+          while (true) {
+            var newRow = row + i * direction[0];
+            var newCol = row + i * direction[1];
+            if (!isInBoard(newRow, newCol)) {
+              break;
+            }
+            if (board[newRow][newCol] != null) {
+              if (board[newRow][newCol]!.isWhite != piece.isWhite) {
+                candidateMoves.add([newRow, newCol]); //kill
+              }
+              break; //block
+            }
+            candidateMoves.add([newRow, newCol]);
+            i++;
+          }
+        }
         break;
       case ChessPieceType.king:
+        //all eight directions
+        var directions = [
+          [-1, 0], //up
+          [1, 0], //down
+          [0, -1], //left
+          [0, 1], //right
+          [-1, -1], //up left
+          [-1, 1], //up right
+          [1, -1], //down left
+          [1, 1], //down right
+        ];
+        for (var direction in directions) {
+          var newRow = row + direction[0];
+          var newCol = col + direction[1];
+          if (!isInBoard(newRow, newCol)) {
+            continue;
+          }
+          if (board[newRow][newCol] != null) {
+            if (board[newRow][newCol]!.isWhite != piece.isWhite) {
+              candidateMoves.add([newRow, newCol]); //kill
+            }
+            continue; //block
+          }
+          candidateMoves.add([newRow, newCol]);
+        }
         break;
     }
     return candidateMoves;
