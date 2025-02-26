@@ -144,14 +144,24 @@ class _GameScreenState extends State<GameScreen> {
         selectedRow = row;
         selectedCol = col;
       }
+
+      //if a piece is selected and the user taps on another square, move the piece
+      else if (selectedPiece != null &&
+          validMoves.any((element) => element[0] == row && element[1] == col)) {
+        movePiece(row, col);
+      }
+
       //if a piece is selected, calculate it's valid moves
       validMoves = calculateRawValidMoves(row, col, selectedPiece!);
     });
   }
 
   //Calculate Raw Valid Moves
-  List<List<int>> calculateRawValidMoves(int row, int col, ChessPiece piece) {
+  List<List<int>> calculateRawValidMoves(int row, int col, ChessPiece? piece) {
     List<List<int>> candidateMoves = [];
+    if (piece == null) {
+      return [];
+    }
     //different directions based on their color
     int direction = piece.isWhite ? -1 : 1;
     switch (piece.type) {
@@ -279,7 +289,7 @@ class _GameScreenState extends State<GameScreen> {
           var i = 1;
           while (true) {
             var newRow = row + i * direction[0];
-            var newCol = row + i * direction[1];
+            var newCol = col + i * direction[1];
             if (!isInBoard(newRow, newCol)) {
               break;
             }
@@ -323,6 +333,21 @@ class _GameScreenState extends State<GameScreen> {
         break;
     }
     return candidateMoves;
+  }
+
+  //move
+  void movePiece(int newRow, int newCol) {
+    setState(() {
+      //move the piece and clear the old spot
+      board[newRow][newCol] = selectedPiece;
+      board[selectedRow][selectedCol] = null;
+
+      //reset the selected piece
+      selectedPiece = null;
+      selectedRow = -1;
+      selectedCol = -1;
+      validMoves = [];
+    });
   }
 
   @override
