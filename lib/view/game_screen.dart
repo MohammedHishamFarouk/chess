@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:chess/components/dead_piece.dart';
 import 'package:chess/components/piece.dart';
 import 'package:chess/components/square.dart';
 import 'package:chess/helper/functions.dart';
@@ -18,15 +19,27 @@ class _GameScreenState extends State<GameScreen> {
   //the currently selected piece
   //if no piece is selected this will be null
   ChessPiece? selectedPiece;
+
   //the row index of the selected piece
   //the default value will be -1 if no piece is selected
   int selectedRow = -1;
+
   //the col index of the selected piece
   //the default value will be -1 if no piece is selected
   int selectedCol = -1;
+
   //a list of valid moves for our selected piece
   //each move is represented as a list of 2 elements: row,column
   List<List<int>> validMoves = [];
+
+  //list of white pieces that have been taken by the black side
+  List<ChessPiece> whitePiecesTaken = [];
+
+  //list of black pieces that have been taken by the white side
+  List<ChessPiece> blackPiecesTaken = [];
+
+  //A boolean to indicate whose turn it is
+  bool isWhiteTurn = true;
   @override
   void initState() {
     super.initState();
@@ -142,9 +155,11 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {
       //no piece has been selected yet,this is the first selection
       if (selectedPiece == null && board[row][col] != null) {
-        selectedPiece = board[row][col];
-        selectedRow = row;
-        selectedCol = col;
+        if (board[row][col]!.isWhite == isWhiteTurn) {
+          selectedPiece = board[row][col];
+          selectedRow = row;
+          selectedCol = col;
+        }
       }
       //there is a piece already selected,but the user selects another piece
       else if (board[row][col] != null &&
@@ -158,6 +173,13 @@ class _GameScreenState extends State<GameScreen> {
       else if (selectedPiece != null &&
           validMoves.any((element) => element[0] == row && element[1] == col)) {
         movePiece(row, col);
+      }
+      //if a piece is selected and the user taps on an empty square, cancel selection
+      else {
+        selectedPiece = null;
+        selectedRow = -1;
+        selectedCol = -1;
+        validMoves = [];
       }
       //if a piece is selected, calculate it's valid moves
       validMoves = calculateRawValidMoves(row, col, selectedPiece);
@@ -356,6 +378,17 @@ class _GameScreenState extends State<GameScreen> {
 
   //move
   void movePiece(int newRow, int newCol) {
+    //if the new spot has an enemy piece
+    if (board[newRow][newCol] != null) {
+      //add the captured piece to the captured pieces list
+      var capturedPiece = board[newRow][newCol];
+      if (capturedPiece!.isWhite) {
+        whitePiecesTaken.add(capturedPiece);
+      } else {
+        blackPiecesTaken.add(capturedPiece);
+      }
+    }
+
     setState(() {
       //move the piece and clear the old spot
       board[newRow][newCol] = selectedPiece;
@@ -367,6 +400,8 @@ class _GameScreenState extends State<GameScreen> {
       selectedCol = -1;
       validMoves = [];
     });
+    //switch turn
+    isWhiteTurn = !isWhiteTurn;
   }
 
   @override
@@ -377,34 +412,69 @@ class _GameScreenState extends State<GameScreen> {
         padding: const EdgeInsets.all(16.0),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 700),
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 8,
-            ),
-            itemBuilder: (context, index) {
-              int row = index ~/ 8;
-              int col = index % 8;
+          child: Column(
+            children: [
+              //taken white pieces
+              Expanded(
+                child: GridView.builder(
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: whitePiecesTaken.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 8,
+                  ),
+                  itemBuilder: (context, index) => DeadPiece(
+                    imagePath: whitePiecesTaken[index].imagePath,
+                    isWhite: true,
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 8,
+                  ),
+                  itemBuilder: (context, index) {
+                    int row = index ~/ 8;
+                    int col = index % 8;
 
-              //check if square is selected
-              bool isSelected = selectedRow == row && selectedCol == col;
+                    //check if square is selected
+                    bool isSelected = selectedRow == row && selectedCol == col;
 
-              //check if this square is a valid moves
-              bool isValidMove = false;
-              for (var position in validMoves) {
-                //compare row and col
-                if (position[0] == row && position[1] == col) {
-                  isValidMove = true;
-                }
-              }
-              return Square(
-                isWhite: isWhite(index),
-                piece: board[row][col],
-                isSelected: isSelected,
-                onTap: () => pieceSelected(row, col),
-                isValidMoves: isValidMove,
-              );
-            },
-            itemCount: 64,
+                    //check if this square is a valid moves
+                    bool isValidMove = false;
+                    for (var position in validMoves) {
+                      //compare row and col
+                      if (position[0] == row && position[1] == col) {
+                        isValidMove = true;
+                      }
+                    }
+                    return Square(
+                      isWhite: isWhite(index),
+                      piece: board[row][col],
+                      isSelected: isSelected,
+                      onTap: () => pieceSelected(row, col),
+                      isValidMoves: isValidMove,
+                    );
+                  },
+                  itemCount: 64,
+                ),
+              ),
+              //taken black pieces
+              Expanded(
+                child: GridView.builder(
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: blackPiecesTaken.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 8,
+                  ),
+                  itemBuilder: (context, index) => DeadPiece(
+                    imagePath: blackPiecesTaken[index].imagePath,
+                    isWhite: false,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
