@@ -198,6 +198,17 @@ class _GameScreenState extends State<GameScreen> {
             board[row + direction][col + 1]!.isWhite) {
           candidateMoves.add([row + direction, col + 1]);
         }
+        if (isInBoard(row + direction, col - 1) &&
+            board[row + direction][col - 1] != null &&
+            !board[row + direction][col - 1]!.isWhite) {
+          candidateMoves.add([row + direction, col - 1]);
+        }
+        if (isInBoard(row + direction, col + 1) &&
+            board[row + direction][col + 1] != null &&
+            !board[row + direction][col + 1]!.isWhite) {
+          candidateMoves.add([row + direction, col + 1]);
+        }
+
         break;
       case ChessPieceType.rook:
         //horizontal and vertical movement
