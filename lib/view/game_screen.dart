@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:chess/components/piece.dart';
 import 'package:chess/components/square.dart';
 import 'package:chess/helper/functions.dart';
@@ -137,22 +139,28 @@ class _GameScreenState extends State<GameScreen> {
 
   //USER SELECTED A Piece
   void pieceSelected(int row, int col) {
-    //select a piece if there is a piece in that position
     setState(() {
-      if (board[row][col] != null) {
+      //no piece has been selected yet,this is the first selection
+      if (selectedPiece == null && board[row][col] != null) {
         selectedPiece = board[row][col];
         selectedRow = row;
         selectedCol = col;
       }
-
+      //there is a piece already selected,but the user selects another piece
+      else if (board[row][col] != null &&
+          board[row][col]!.isWhite == selectedPiece!.isWhite) {
+        log('true');
+        selectedPiece = board[row][col];
+        selectedRow = row;
+        selectedCol = col;
+      }
       //if a piece is selected and the user taps on another square, move the piece
       else if (selectedPiece != null &&
           validMoves.any((element) => element[0] == row && element[1] == col)) {
         movePiece(row, col);
       }
-
       //if a piece is selected, calculate it's valid moves
-      validMoves = calculateRawValidMoves(row, col, selectedPiece!);
+      validMoves = calculateRawValidMoves(row, col, selectedPiece);
     });
   }
 
