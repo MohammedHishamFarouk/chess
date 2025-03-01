@@ -1,8 +1,7 @@
-import 'dart:developer';
-
 import 'package:chess/components/dead_piece.dart';
 import 'package:chess/components/piece.dart';
 import 'package:chess/components/square.dart';
+import 'package:chess/helper/constants.dart';
 import 'package:chess/helper/functions.dart';
 import 'package:flutter/material.dart';
 
@@ -168,7 +167,6 @@ class _GameScreenState extends State<GameScreen> {
       //there is a piece already selected,but the user selects another piece
       else if (board[row][col] != null &&
           board[row][col]!.isWhite == selectedPiece!.isWhite) {
-        log('true');
         selectedPiece = board[row][col];
         selectedRow = row;
         selectedCol = col;
@@ -226,15 +224,8 @@ class _GameScreenState extends State<GameScreen> {
         }
         break;
       case ChessPieceType.rook:
-        //horizontal and vertical movement
-        var directions = [
-          [-1, 0], //up
-          [1, 0], //down
-          [0, -1], //left
-          [0, 1], //right
-        ];
-        //loop through all directions and check if there is a piece there
-        for (var direction in directions) {
+        //loop through all the Moves and check if there is a piece there
+        for (var direction in Moves.rook) {
           var i = 1;
           while (true) {
             var newRow = row + i * direction[0];
@@ -254,20 +245,10 @@ class _GameScreenState extends State<GameScreen> {
         }
         break;
       case ChessPieceType.knight:
-        //knight moves in L shape
-        var knightMoves = [
-          [-2, -1], //up 2 left 1
-          [-2, 1], //up 2 right 1
-          [-1, -2], //up 1 left 2
-          [-1, 2], //up 1 right 2
-          [1, -2], //down 1 left 2
-          [1, 2], //down 1 right 2
-          [2, -1], //down 2 left 1
-          [2, 1], //down 2 right 1
-        ];
-        for (var move in knightMoves) {
-          var newRow = row + move[0];
-          var newCol = col + move[1];
+        //loop through all the Moves and check if there is a piece there
+        for (var direction in Moves.knight) {
+          var newRow = row + direction[0];
+          var newCol = col + direction[1];
           if (!isInBoard(newRow, newCol)) {
             continue;
           }
@@ -281,14 +262,8 @@ class _GameScreenState extends State<GameScreen> {
         }
         break;
       case ChessPieceType.bishop:
-        //diagonal directions
-        var directions = [
-          [-1, -1], //up left
-          [-1, 1], //up right
-          [1, -1], //down left
-          [1, 1], //down right
-        ];
-        for (var direction in directions) {
+        //loop through all the Moves and check if there is a piece there
+        for (var direction in Moves.bishop) {
           var i = 1;
           while (true) {
             var newRow = row + i * direction[0];
@@ -308,18 +283,8 @@ class _GameScreenState extends State<GameScreen> {
         }
         break;
       case ChessPieceType.queen:
-        //horizontal and vertical and diagonal movement
-        var directions = [
-          [-1, 0], //up
-          [1, 0], //down
-          [0, -1], //left
-          [0, 1], //right
-          [-1, -1], //up left
-          [-1, 1], //up right
-          [1, -1], //down left
-          [1, 1], //down right
-        ];
-        for (var direction in directions) {
+        //loop through all the Moves and check if there is a piece there
+        for (var direction in Moves.queen) {
           var i = 1;
           while (true) {
             var newRow = row + i * direction[0];
@@ -339,18 +304,8 @@ class _GameScreenState extends State<GameScreen> {
         }
         break;
       case ChessPieceType.king:
-        //all eight directions
-        var directions = [
-          [-1, 0], //up
-          [1, 0], //down
-          [0, -1], //left
-          [0, 1], //right
-          [-1, -1], //up left
-          [-1, 1], //up right
-          [1, -1], //down left
-          [1, 1], //down right
-        ];
-        for (var direction in directions) {
+        //loop through all the Moves and check if there is a piece there
+        for (var direction in Moves.king) {
           var newRow = row + direction[0];
           var newCol = col + direction[1];
           if (!isInBoard(newRow, newCol)) {
@@ -558,73 +513,86 @@ class _GameScreenState extends State<GameScreen> {
       backgroundColor: Colors.grey.shade700,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 700),
-          child: Column(
-            children: [
-              //taken white pieces
-              Expanded(
-                child: GridView.builder(
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: whitePiecesTaken.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 8,
-                  ),
-                  itemBuilder: (context, index) => DeadPiece(
-                    imagePath: whitePiecesTaken[index].imagePath,
-                    isWhite: true,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 700),
+            child: Column(
+              children: [
+                //taken white pieces
+                Container(
+                  height: whitePiecesTaken.isNotEmpty ? 50 : 0,
+                  color: Colors.black12,
+                  child: GridView.builder(
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: whitePiecesTaken.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 8,
+                    ),
+                    itemBuilder: (context, index) => DeadPiece(
+                      imagePath: whitePiecesTaken[index].imagePath,
+                      isWhite: true,
+                    ),
                   ),
                 ),
-              ),
-              //game Status
-              Text(checkStatus ? "CHECK!!" : ""),
-              Expanded(
-                flex: 3,
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 8,
-                  ),
-                  itemBuilder: (context, index) {
-                    int row = index ~/ 8;
-                    int col = index % 8;
+                //game Status
+                Visibility(
+                  visible: checkStatus,
+                  child: Text("CHECK!!"),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 8,
+                    ),
+                    itemBuilder: (context, index) {
+                      int row = index ~/ 8;
+                      int col = index % 8;
 
-                    //check if square is selected
-                    bool isSelected = selectedRow == row && selectedCol == col;
+                      //check if square is selected
+                      bool isSelected =
+                          selectedRow == row && selectedCol == col;
 
-                    //check if this square is a valid moves
-                    bool isValidMove = false;
-                    for (var position in validMoves) {
-                      //compare row and col
-                      if (position[0] == row && position[1] == col) {
-                        isValidMove = true;
+                      //check if this square is a valid moves
+                      bool isValidMove = false;
+                      for (var position in validMoves) {
+                        //compare row and col
+                        if (position[0] == row && position[1] == col) {
+                          isValidMove = true;
+                        }
                       }
-                    }
-                    return Square(
-                      isWhite: isWhite(index),
-                      piece: board[row][col],
-                      isSelected: isSelected,
-                      onTap: () => pieceSelected(row, col),
-                      isValidMoves: isValidMove,
-                    );
-                  },
-                  itemCount: 64,
-                ),
-              ),
-              //taken black pieces
-              Expanded(
-                child: GridView.builder(
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: blackPiecesTaken.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 8,
-                  ),
-                  itemBuilder: (context, index) => DeadPiece(
-                    imagePath: blackPiecesTaken[index].imagePath,
-                    isWhite: false,
+                      return Square(
+                        isWhite: isWhite(index),
+                        piece: board[row][col],
+                        isSelected: isSelected,
+                        onTap: () => pieceSelected(row, col),
+                        isValidMoves: isValidMove,
+                      );
+                    },
+                    itemCount: 64,
                   ),
                 ),
-              ),
-            ],
+                //taken black pieces
+                Container(
+                  height: blackPiecesTaken.isNotEmpty ? 50 : 0,
+                  color: Colors.black12,
+                  child: GridView.builder(
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: blackPiecesTaken.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 8,
+                    ),
+                    itemBuilder: (context, index) => DeadPiece(
+                      imagePath: blackPiecesTaken[index].imagePath,
+                      isWhite: false,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
